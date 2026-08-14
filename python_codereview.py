@@ -33,8 +33,7 @@ def is_host_alive(h: str) -> bool:
     url = "http://" + h
     try:
         response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
-        status_code = response.status_code
-        return status_code >= 500
+        return response.status_code < 500
 
     except ConnectionError:
         return False
