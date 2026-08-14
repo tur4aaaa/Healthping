@@ -15,13 +15,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
 
       - name: Install linters
         run: pip install ruff black mypy bandit vulture
 
       - name: Ruff
-        run: ruff python_check codereview.py
+        run: ruff check python_codereview.py
 
       - name: Black
         run: black --check python_codereview.py
