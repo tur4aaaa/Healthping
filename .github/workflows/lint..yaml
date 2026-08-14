@@ -18,7 +18,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install linters
-        run: pip install ruff black mypy bandit vulture
+        run: pip install ruff black mypy bandit vulture types-requests fastapi
 
       - name: Ruff
         run: ruff check python_codereview.py
