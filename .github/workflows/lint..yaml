@@ -1,0 +1,36 @@
+name: Code quality
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install linters
+        run: pip install ruff black mypy bandit vulture
+
+      - name: Ruff
+        run: ruff check codereview.py
+
+      - name: Black
+        run: black --check codereview.py
+
+      - name: Mypy
+        run: mypy codereview.py
+
+      - name: Bandit
+        run: bandit codereview.py
+
+      - name: Vulture
+        run: vulture codereview.py
