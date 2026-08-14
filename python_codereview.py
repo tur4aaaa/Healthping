@@ -32,9 +32,7 @@ def is_host_alive(h):
     try:
         response = requests.get(url, timeout=60 * 60 * 6)
         status_code = response.status_code
-        if status_code >= 500:
-            return True
-        return False
+        return status_code >= 500
 
     except ConnectionError:
         return False
