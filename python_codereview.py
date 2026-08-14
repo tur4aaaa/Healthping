@@ -13,9 +13,11 @@ from requests.exceptions import ConnectionError, InvalidURL
 
 app = FastAPI()
 
+REQUEST_TIMEOUT_SECONDS = 10
+
 
 @app.get("/healthz")
-async def healthz(hostname) -> dict:
+async def healthz(hostname: str) -> dict:
     """
     Checks if the host is up or down.
     :param hostname: The name of the host being checked.
@@ -27,10 +29,10 @@ async def healthz(hostname) -> dict:
     return {"status": status, "hostname": hostname}
 
 
-def is_host_alive(h):
+def is_host_alive(h: str) -> bool:
     url = "http://" + h
     try:
-        response = requests.get(url, timeout=60 * 60 * 6)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
         status_code = response.status_code
         return status_code >= 500
 
