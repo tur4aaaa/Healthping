@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: project27-api
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: project27-api
+
+  template:
+    metadata:
+      labels:
+        app: project27-api
+
+    spec:
+      containers:
+        - name: project27-api
+          image: project27-api:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: REQUEST_TIMEOUT_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: project27-api-config
+                  key: REQUEST_TIMEOUT_SECONDS
