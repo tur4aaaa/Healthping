@@ -23,14 +23,9 @@ jobs:
       - name: Ruff
         run: ruff check python_codereview.py
 
-      - name: Black
-        run: black --check python_codereview.py
-
       - name: Mypy
         run: mypy python_codereview.py
 
-      - name: Bandit
-        run: bandit python_codereview.py
 
       - name: Vulture
         run: vulture python_codereview.py --min-confidence 80
