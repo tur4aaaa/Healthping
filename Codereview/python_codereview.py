@@ -1,17 +1,12 @@
-"""
-External Host Availability Checker API.
+import logging
+from urllib.parse import urlparse
 
-A lightweight public API service for checking the alive state of external hostnames.
-This module provides functionality to verify and monitor the availability status
-of remote hosts through HTTP/HTTPS protocols.
-
-"""
-
-import requests
+import httpx
 from fastapi import FastAPI
-from requests.exceptions import ConnectionError, InvalidURL
 
 app = FastAPI()
+
+logger = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT_SECONDS = 10
 
@@ -22,21 +17,30 @@ async def healthz(hostname: str) -> dict:
     Checks if the host is up or down.
     :param hostname: The name of the host being checked.
     """
-    print("request", hostname)
-    status = "up" if is_host_alive(hostname) else "down"
-    print("response", status)
+    logger.info("request: %s", hostname)
+
+    status = "up" if await is_host_alive(hostname) else "down"
+
+    logger.info("response: %s", status)
 
     return {"status": status, "hostname": hostname}
 
 
-def is_host_alive(h: str) -> bool:
-    url = "http://" + h
+async def is_host_alive(hostname: str) -> bool:
+    parsed_url = urlparse(hostname)
+
+    if not parsed_url.scheme:
+        url = f"http://{hostname}"
+    else:
+        url = hostname
+
     try:
-        response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
-        return response.status_code < 500
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                url,
+                timeout=REQUEST_TIMEOUT_SECONDS,
+            )
+            return response.status_code < 500
 
-    except ConnectionError:
-        return False
-
-    except InvalidURL:
+    except (httpx.ConnectError, httpx.InvalidURL):
         return False
