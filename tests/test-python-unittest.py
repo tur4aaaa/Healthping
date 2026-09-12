@@ -9,7 +9,7 @@ from python_codereview import app, is_host_aliveHello
 
 
 
-# Unittests
+# Unit Tests
 
 class FakeResponse:
     """A minimal fake replacement for requests.Response.
