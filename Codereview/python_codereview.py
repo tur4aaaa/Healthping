@@ -1,6 +1,6 @@
 import logging
 from urllib.parse import urlparse
-
+import os
 import httpx
 from fastapi import FastAPI
 
@@ -8,7 +8,7 @@ app = FastAPI()
 
 logger = logging.getLogger(__name__)
 
-REQUEST_TIMEOUT_SECONDS = 10
+REQUEST_TIMEOUT_SECONDS = int(os.environ.get("REQUEST_TIME_SECONDS",10))
 
 
 @app.get("/healthz")
