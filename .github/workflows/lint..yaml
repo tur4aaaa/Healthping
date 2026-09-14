@@ -21,11 +21,11 @@ jobs:
         run: pip install ruff black mypy bandit vulture types-requests fastapi
 
       - name: Ruff
-        run: ruff check python_codereview.py
+        run: ruff check Codereview/python_codereview.py
 
       - name: Mypy
-        run: mypy python_codereview.py
+        run: mypy Codereview/python_codereview.py
 
 
       - name: Vulture
-        run: vulture python_codereview.py --min-confidence 80
+        run: vulture Codereview/python_codereview.py --min-confidence 80
