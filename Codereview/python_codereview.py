@@ -54,7 +54,6 @@ async def is_host_alive(hostname: str) -> bool:
         ) as client:
             response = await client.get(hostname)
 
-        #
         return response.status_code < 500
 
     except (
