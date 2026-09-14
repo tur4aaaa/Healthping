@@ -9,7 +9,9 @@ app = FastAPI()
 
 logger = logging.getLogger(__name__)
 
-REQUEST_TIMEOUT_SECONDS = int(os.environ.get("REQUEST_TIME_SECONDS","10"))
+REQUEST_TIMEOUT_SECONDS = int(
+    os.environ.get("REQUEST_TIMEOUT_SECONDS", "10")
+)
 
 
 @app.get("/healthz")
@@ -24,24 +26,41 @@ async def healthz(hostname: str) -> dict:
 
     logger.info("response: %s", status)
 
-    return {"status": status, "hostname": hostname}
+    return {
+        "status": status,
+        "hostname": hostname,
+    }
 
 
 async def is_host_alive(hostname: str) -> bool:
+    """
+    Checks whether the specified host is reachable.
+    """
+
+    #Если пользовател ввел просто google.com то добавляет https://
+    if not hostname.startswith(("http://", "https://")):
+        hostname = f"http://{hostname}"
+
+    # ППроверяем URL ли корректный введен
     parsed_url = urlparse(hostname)
 
-    if not parsed_url.scheme:
-        url = f"http://{hostname}"
-    else:
-        url = hostname
+    if not parsed_url.netloc:
+        return False
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                url,
-                timeout=REQUEST_TIMEOUT_SECONDS,
-            )
-            return response.status_code < 500
+        async with httpx.AsyncClient(
+            timeout=REQUEST_TIMEOUT_SECONDS,
+            follow_redirects=True,
+        ) as client:
+            response = await client.get(hostname)
 
-    except (httpx.ConnectError, httpx.InvalidURL):
+        #
+        return response.status_code < 500
+
+    except (
+        httpx.TimeoutException,
+        httpx.ConnectError,
+        httpx.InvalidURL,
+        httpx.RequestError,
+    ):
         return False
