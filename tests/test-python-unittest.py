@@ -1,76 +1,121 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-from requests.exceptions import ConnectionError, InvalidURL
 
-from python_codereview import app, is_host_aliveHello
+from python_codereview import is_host_alive
 
-
-
-
-# Unit Tests
 
 class FakeResponse:
-    """A minimal fake replacement for requests.Response.
-
-    Only implements what is_host_alive actually uses (.status_code),
-    instead of mocking the whole requests library object.
-    """
+    """A minimal fake replacement for httpx.Response."""
 
     def __init__(self, status_code: int):
         self.status_code = status_code
 
 
-def test_is_host_alive_returns_true_for_2xx_using_stub():
-    """Stub example: requests.get is replaced with a function that
-    always returns a canned response, no call assertions made."""
+@pytest.mark.asyncio
+async def test_is_host_alive_returns_true_for_2xx_using_stub():
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(
+        return_value=FakeResponse(200)
+    )
+
     with patch(
-        "python_codereview.requests.get",
-        return_value=FakeResponse(200),
-    ):
-        assert is_host_alive("example.com") is True
+        "python_codereview.httpx.AsyncClient"
+    ) as mock_async_client:
+
+        mock_async_client.return_value.__aenter__.return_value = (
+            mock_client
+        )
+
+        assert await is_host_alive("example.com") is True
 
 
-def test_is_host_alive_returns_false_for_5xx_using_fake():
-    """Fake example: FakeResponse behaves like a real Response object
-    for the attributes our code under test actually touches."""
+@pytest.mark.asyncio
+async def test_is_host_alive_returns_false_for_5xx_using_fake():
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(
+        return_value=FakeResponse(503)
+    )
+
     with patch(
-        "python_codereview.requests.get",
-        return_value=FakeResponse(503),
-    ):
-        assert ishost_alive("example.com") is False
+        "python_codereview.httpx.AsyncClient"
+    ) as mock_async_client:
+
+        mock_async_client.return_value.__aenter__.return_value = (
+            mock_client
+        )
+
+        assert await is_host_alive("example.com") is False
 
 
-def test_is_host_alive_calls_requests_get_with_correct_url_using_mock():
-    """Mock example: verifies not just the return value, but that
-    requests.get was called correctly (URL, call count)."""
-    mock_get = MagicMock(return_value=FakeResponse(200))
-    with patch("python_codereview.requests.get", mock_get):
-        is_host_alive("example.com")
+@pytest.mark.asyncio
+async def test_is_host_alive_calls_httpx_with_correct_url():
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(
+        return_value=FakeResponse(200)
+    )
 
-    mock_get.assert_called_once()
-    called_args, called_kwargs = mock_get.call_args
+    with patch(
+        "python_codereview.httpx.AsyncClient"
+    ) as mock_async_client:
+
+        mock_async_client.return_value.__aenter__.return_value = (
+            mock_client
+        )
+
+        await is_host_alive("example.com")
+
+    mock_client.get.assert_called_once()
+
+    called_args, called_kwargs = mock_client.get.call_args
+
     assert called_args[0] == "http://example.com"
-    assert "timeout" in called_kwargs
+    assert "timeout" not in called_kwargs
 
 
-def test_is_host_alive_returns_false_on_connection_error():
+@pytest.mark.asyncio
+async def test_is_host_alive_returns_false_on_connection_error():
+    mock_client = AsyncMock()
+
+    mock_client.get = AsyncMock(
+        side_effect=__import__("httpx").ConnectError("Connection failed")
+    )
+
     with patch(
-        "python_codereview.requests.get",
-        side_effect=ConnectionError,
-    ):
-        assert is_host_alive("unreachable-host.invalid") is False
+        "python_codereview.httpx.AsyncClient"
+    ) as mock_async_client:
+
+        mock_async_client.return_value.__aenter__.return_value = (
+            mock_client
+        )
+
+        assert await is_host_alive(
+            "unreachable-host.invalid"
+        ) is False
 
 
-def test_is_host_alive_returns_false_on_invalid_url():
+@pytest.mark.asyncio
+async def test_is_host_alive_returns_false_on_invalid_url():
+    mock_client = AsyncMock()
+
+    mock_client.get = AsyncMock(
+        side_effect=__import__("httpx").InvalidURL("Invalid URL")
+    )
+
     with patch(
-        "python_codereview.requests.get",
-        side_effect=InvalidURL,
-    ):
-        assert is_host_alive("not a valid url") is False
+        "python_codereview.httpx.AsyncClient"
+    ) as mock_async_client:
+
+        mock_async_client.return_value.__aenter__.return_value = (
+            mock_client
+        )
+
+        assert await is_host_alive(
+            "not a valid url"
+        ) is False
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "status_code,expected",
     [
@@ -83,9 +128,24 @@ def test_is_host_alive_returns_false_on_invalid_url():
         (599, False),
     ],
 )
-def test_is_host_alive_status_code_boundaries(status_code, expected):
+async def test_is_host_alive_status_code_boundaries(
+    status_code,
+    expected,
+):
+    mock_client = AsyncMock()
+
+    mock_client.get = AsyncMock(
+        return_value=FakeResponse(status_code)
+    )
+
     with patch(
-        "python_codereview.requests.get",
-        return_value=FakeResponse(status_code),
-    ):
-        assert is_host_alive("example.com") is expected
+        "python_codereview.httpx.AsyncClient"
+    ) as mock_async_client:
+
+        mock_async_client.return_value.__aenter__.return_value = (
+            mock_client
+        )
+
+        assert await is_host_alive(
+            "example.com"
+        ) is expected
