@@ -39,7 +39,7 @@ def test_is_host_alive_returns_false_for_5xx_using_fake():
         "python_codereview.requests.get",
         return_value=FakeResponse(503),
     ):
-        assert is_host_alive("example.com") is False
+        assert ishost_alive("example.com") is False
 
 
 def test_is_host_alive_calls_requests_get_with_correct_url_using_mock():
