@@ -1,0 +1,17 @@
+[Unit]
+Description=HealthPing backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=healthping
+WorkingDirectory=/opt/healthping
+Environment=REQUEST_TIMEOUT_SECONDS=10
+ExecStart=/opt/healthping/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
